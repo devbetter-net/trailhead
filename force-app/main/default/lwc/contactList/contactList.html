@@ -5,9 +5,9 @@
             </lightning-datatable>
         </template>
 
-        <template if:true={contacts.error}>
+        <template if:true={errors}>
             <p class="slds-text-color_error">
-                Error loading contacts
+                {errors}
             </p>
         </template>
     </lightning-card>
