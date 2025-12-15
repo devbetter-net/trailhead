@@ -6,5 +6,9 @@
         <c-controls class="slds-show slds-is-relative" onadd={handleIncrement} onsubtract={handleDecrement}
             onmultiply={handleMultiply}>
         </c-controls>
+
+        <p class="slds-text-align_center slds-var-m-vertical_medium">
+            Prior Count: <lightning-formatted-number value={priorCount}></lightning-formatted-number>
+        </p>
     </lightning-card>
 </template>
