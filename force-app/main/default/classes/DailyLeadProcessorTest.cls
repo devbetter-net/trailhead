@@ -20,40 +20,35 @@
  * See the Apex Language Reference for more information about Testing and Code Coverage.
  */
 @isTest
-private class AddPrimaryContactTest {
+private class DailyLeadProcessorTest {
+
+    private static String CRON_EXP = '0 0 0 ? * * *'; //Midnight every day
 
     @isTest
-    static void testQueueableClass() {
-        // Load test data
-        List<Account> accounts = new List<Account>();
+    static void testScheduleClass() {
+         List<Lead> leads = new List<Lead>();
         for (Integer i = 0; i < 500; i++) {
-            Account acc = new Account(Name = 'Test Account ' + i);
+
             if (i < 250)
             {
-                acc.BillingState = 'NY';
+                leads.add(new Lead(LastName = 'Kyle', Company ='Saleforce'));
             }
             else
             {
-                acc.BillingState = 'CA';
+                leads.add(new Lead(LastName = 'Kyle', Company ='Saleforce', LeadSource = 'Other'));
             }
-            accounts.add(acc);
         }
-        insert accounts;
+        insert leads;
 
-        // Create test Contact
-        Contact contact = new Contact(FirstName = 'FirstName Contact', LastName = 'LastName Contact');
-        insert contact;
-
-        //Perform test
         Test.startTest();
-        AddPrimaryContact addPrimaryContact = new AddPrimaryContact(contact, 'NY');
-        System.enqueueJob(addPrimaryContact);
+        String jobId = System.schedule('DailyLeadProcessorTest', CRON_EXP, new DailyLeadProcessor());
         Test.stopTest();
 
-        //check if the contact is updated
-        List<Contact> contacts = [SELECT Id, AccountId FROM Contact WHERE Contact.Account.BillingState = 'NY'];
-        System.Assert.areEqual(200, contacts.size());
-        //System.Assert.areEqual(contact.Id, contacts.get(0).AccountId);
+        List<Lead> updatedLeads = [SELECT Id, LeadSource FROM Lead WHERE LeadSource = 'Dreamforce'];
+        System.assertEquals(200, updatedLeads.size(), 'ERROR: At least 1 record not updated correctly');
 
+        //check the scheduled time
+        CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered, NextFireTime FROM CronTrigger WHERE id = :jobId];
+        System.Assert.areEqual(CRON_EXP, ct.CronExpression);
     }
 }
